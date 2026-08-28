@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+  <defs>
+    <!-- Rich Golden Gradients -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCE5B8" />
+      <stop offset="30%" stop-color="#E2B16B" />
+      <stop offset="70%" stop-color="#C68B59" />
+      <stop offset="100%" stop-color="#9E5D2A" />
+    </linearGradient>
+
+    <linearGradient id="goldLightGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFF2D6" />
+      <stop offset="100%" stop-color="#E2B16B" />
+    </linearGradient>
+
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8CD884" />
+      <stop offset="50%" stop-color="#4CAF50" />
+      <stop offset="100%" stop-color="#2D5A27" />
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(0, 10)">
+    <!-- Outer Sacred Circle Aura -->
+    <circle cx="250" cy="180" r="115" fill="none" stroke="url(#goldGrad)" stroke-width="2" stroke-dasharray="6,6" opacity="0.6" />
+    <circle cx="250" cy="180" r="128" fill="none" stroke="url(#goldGrad)" stroke-width="1.2" opacity="0.4" />
+
+    <!-- Sacred Botanical Lotus & Leaf Crest -->
+    <g transform="translate(250, 180)">
+      <!-- Left Laurel Branch -->
+      <path d="M -70 40 C -105 0, -100 -50, -60 -90 C -70 -70, -70 -30, -50 0 C -45 8, -55 25, -70 40 Z" fill="url(#goldGrad)" opacity="0.85" />
+      <path d="M -85 -10 C -100 -25, -105 -45, -95 -60 C -90 -50, -85 -35, -80 -25 Z" fill="url(#goldLightGrad)" opacity="0.75" />
+      <path d="M -60 -65 C -75 -85, -75 -105, -60 -115 C -55 -105, -55 -90, -50 -80 Z" fill="url(#goldLightGrad)" opacity="0.75" />
+
+      <!-- Right Laurel Branch -->
+      <path d="M 70 40 C 105 0, 100 -50, 60 -90 C 70 -70, 70 -30, 50 0 C 45 8, 55 25, 70 40 Z" fill="url(#goldGrad)" opacity="0.85" />
+      <path d="M 85 -10 C 100 -25, 105 -45, 95 -60 C 90 -50, 85 -35, 80 -25 Z" fill="url(#goldLightGrad)" opacity="0.75" />
+      <path d="M 60 -65 C 75 -85, 75 -105, 60 -115 C 55 -105, 55 -90, 50 -80 Z" fill="url(#goldLightGrad)" opacity="0.75" />
+
+      <!-- Outer Lotus Petals (Left & Right) -->
+      <path d="M 0 35 C -45 30, -80 -5, -65 -45 C -45 -15, -20 15, 0 35 Z" fill="url(#goldGrad)" />
+      <path d="M 0 35 C 45 30, 80 -5, 65 -45 C 45 -15, 20 15, 0 35 Z" fill="url(#goldGrad)" />
+
+      <!-- Intermediate Lotus Petals -->
+      <path d="M 0 35 C -30 20, -55 -15, -40 -65 C -25 -30, -10 10, 0 35 Z" fill="url(#goldLightGrad)" />
+      <path d="M 0 35 C 30 20, 55 -15, 40 -65 C 25 -30, 10 10, 0 35 Z" fill="url(#goldLightGrad)" />
+
+      <!-- Central Sacred Lotus Petal -->
+      <path d="M 0 35 C -22 0, -22 -55, 0 -85 C 22 -55, 22 0, 0 35 Z" fill="url(#goldGrad)" />
+
+      <!-- Amrit Bindu / Sacred Life Essence Core Drop -->
+      <circle cx="0" cy="-20" r="9" fill="#FFF8E7" />
+      <path d="M 0 -40 C -6 -28, -6 -22, 0 -15 C 6 -22, 6 -28, 0 -40 Z" fill="url(#goldLightGrad)" />
+
+      <!-- Base Pedestal Calyx / Lotus Foundation -->
+      <path d="M -45 35 C -20 50, 20 50, 45 35 C 30 42, -30 42, -45 35 Z" fill="url(#goldGrad)" />
+      <circle cx="0" cy="42" r="3.5" fill="url(#goldLightGrad)" />
+      <circle cx="-18" cy="39" r="2.5" fill="url(#goldLightGrad)" />
+      <circle cx="18" cy="39" r="2.5" fill="url(#goldLightGrad)" />
+    </g>
+
+    <!-- Brand Typography: AMRUTAM -->
+    <text 
+      x="250" 
+      y="370" 
+      text-anchor="middle" 
+      fill="url(#goldGrad)" 
+      font-family="'Playfair Display', 'Times New Roman', Georgia, serif" 
+      font-size="44" 
+      font-weight="700" 
+      letter-spacing="10">
+      AMRUTAM
+    </text>
+
+    <!-- Accent Flourish Underline -->
+    <g transform="translate(250, 395)">
+      <line x1="-120" y1="0" x2="-25" y2="0" stroke="url(#goldGrad)" stroke-width="1.5" stroke-linecap="round" />
+      <circle cx="0" cy="0" r="4" fill="url(#goldGrad)" />
+      <circle cx="-10" cy="0" r="2" fill="url(#goldGrad)" />
+      <circle cx="10" cy="0" r="2" fill="url(#goldGrad)" />
+      <line x1="25" y1="0" x2="120" y2="0" stroke="url(#goldGrad)" stroke-width="1.5" stroke-linecap="round" />
+    </g>
+
+    <!-- Tagline: AYURVEDIC WISDOM -->
+    <text 
+      x="250" 
+      y="430" 
+      text-anchor="middle" 
+      fill="#E2B16B" 
+      font-family="'Inter', -apple-system, Roboto, sans-serif" 
+      font-size="14" 
+      font-weight="600" 
+      letter-spacing="5"
+      opacity="0.9">
+      AYURVEDIC WISDOM
+    </text>
+  </g>
+</svg>
