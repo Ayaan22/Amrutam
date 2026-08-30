@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavigationContainer, DefaultTheme, DarkTheme, Theme as NavTheme } from '@react-navigation/native';
-import { useTheme } from '../../theme';
+import { useTheme } from '@theme';
 import { AppStack } from './AppStack';
 import { AuthStack } from './AuthStack';
 

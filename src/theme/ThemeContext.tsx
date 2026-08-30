@@ -31,7 +31,7 @@ export const defaultTheme: Theme = {
   elevation,
 };
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export interface ThemeProviderProps {
   children: React.ReactNode;
