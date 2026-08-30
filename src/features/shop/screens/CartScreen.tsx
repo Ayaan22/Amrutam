@@ -8,9 +8,8 @@ import { Surface, Text, Button, EmptyState } from '@core-components';
 import { useTheme } from '@theme';
 import { STRINGS } from '@utils';
 import { AppStackParamList } from '@app/navigation/types';
-import { useCartStore, CartItem } from '../../../store/cartStore';
-import { useNetworkStore } from '../../../store/networkStore';
-import { enqueueOfflineOrder } from '../../../services/offlineSync';
+import { useCartStore, useNetworkStore, CartItem } from '@store';
+import { enqueueOfflineOrder } from '@services';
 import { CartItemCard, PriceSummaryCard } from '../components';
 import { createStyles } from './CartScreen.styles';
 

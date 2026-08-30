@@ -4,8 +4,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { Card, Text, Badge, Image, Button } from '@core-components';
 import { useTheme } from '@theme';
 import { STRINGS } from '@utils';
-import { useCartStore } from '../../../../store/cartStore';
-import { useWishlistStore } from '../../../../store/wishlistStore';
+import { useCartStore, useWishlistStore } from '@store';
 import { ProductCardProps } from './ProductCard.types';
 import { createStyles } from './ProductCard.styles';
 

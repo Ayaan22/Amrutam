@@ -16,8 +16,7 @@ import {
   FilterSortBar,
 } from '@features/shop/components';
 import { AppStackParamList } from '@app/navigation/types';
-import { useCartStore } from '../../../store/cartStore';
-import { useWishlistStore } from '../../../store/wishlistStore';
+import { useCartStore, useWishlistStore } from '@store';
 import { createStyles } from './ShopScreen.styles';
 
 type NavigationProp = NativeStackNavigationProp<AppStackParamList>;

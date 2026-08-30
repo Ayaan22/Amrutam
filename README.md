@@ -1,6 +1,6 @@
 # 🌿 Amrutam - Holistic Ayurveda & Patient Care Mobile Application
 
-A production-grade, feature-rich React Native (TypeScript) mobile application built for **Amrutam**. The platform seamlessly unifies three core healthcare verticals: **Ayurvedic Doctor Consultations**, **Authentic Herbal E-Commerce**, and **Patient Health Records & Clinical Timeline**.
+A production-grade, feature-rich React Native (TypeScript) mobile application built for **Amrutam**. The platform seamlessly unifies three core healthcare verticals: **Ayurvedic Doctor Consultations**, **Authentic Herbal E-Commerce**, and **Patient Health Records & Clinical Timeline** with an enterprise-grade **Offline-First Architecture**.
 
 ---
 
@@ -8,10 +8,10 @@ A production-grade, feature-rich React Native (TypeScript) mobile application bu
 1. [System Architecture](#-system-architecture)
 2. [Folder Structure](#-folder-structure)
 3. [Feature Modules](#-feature-modules)
-4. [Architectural Decisions & Design System](#-architectural-decisions--design-system)
-5. [State Management Choice](#-state-management-choice)
-6. [Performance Optimizations](#-performance-optimizations)
-7. [Offline Strategy & Persistence](#-offline-strategy--persistence)
+4. [Offline-First Strategy & Synchronization Engine](#-offline-first-strategy--synchronization-engine)
+5. [Architectural Decisions & Design System](#-architectural-decisions--design-system)
+6. [State Management Choice](#-state-management-choice)
+7. [Performance Optimizations](#-performance-optimizations)
 8. [Trade-offs Made](#-trade-offs-made)
 9. [Future Improvements](#-future-improvements)
 10. [Setup & Running Locally](#-setup--running-locally)
@@ -41,10 +41,11 @@ The application is architected following **Feature-Driven Development (FDD)** an
 └────────────────────────────────────┬────────────────────────────────────┘
                                      │
 ┌────────────────────────────────────▼────────────────────────────────────┐
-│                  Business Logic & State Management Layer                │
+│                  Business Logic, Services & Offline Sync                │
 │   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │  Zustand Stores: cartStore, wishlistStore, consultationStore    │   │
-│   │  Persistence: MMKV (Synchronous C++ Native Storage)             │   │
+│   │  Zustand Stores: cartStore, wishlistStore, appStore, networkStore│   │
+│   │  Services: apiCache, offlineSync, storage (MMKV Native Engine)  │   │
+│   │  Network Monitor: @react-native-community/netinfo Auto-Sync     │   │
 │   └─────────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -60,6 +61,8 @@ src/
 ├── app/                          # Application Bootstrap & Routing
 │   └── navigation/               # Navigation Trees & Param Lists
 │       ├── AppNavigator.tsx      # Root Stack Navigator
+│       ├── AppStack.tsx          # Main Application Stack
+│       ├── AuthStack.tsx         # Authentication Flow Stack
 │       ├── BottomTabNavigator.tsx# Primary Tab Bar (Consult, Shop, Records)
 │       └── types.ts              # RouteParamList Contracts
 │
@@ -67,7 +70,7 @@ src/
 │   └── strings.ts                # STRINGS: Centralized UI Copy, Labels, Routes
 │
 ├── core-components/              # Reusable Atomic Design System
-│   ├── Badge/                    # Colored Status Badges (primary, success, error)
+│   ├── Badge/                    # Colored Status Badges (primary, success, error, warning)
 │   ├── Button/                   # Accessible Styled Buttons (primary, ghost, secondary)
 │   ├── Card/                     # Surface Elevation Wrappers
 │   ├── EmptyState/               # Universal Illustrated Empty Views
@@ -78,11 +81,12 @@ src/
 │   ├── Text/                     # Typographic Scaled Text Primitives
 │   └── index.ts                  # Atomic Exports
 │
-├── features/                     # Domain Feature Modules
+├── features/                     # Domain Feature Modules (FDD Architecture)
 │   │
 │   ├── auth/                     # Authentication Module
-│   │   └── screens/
-│   │       └── LoginScreen.tsx
+│   │   ├── screens/
+│   │   │   └── LoginScreen.tsx
+│   │   └── index.ts
 │   │
 │   ├── consultation/             # Module 1: Doctor Consultation & Slots
 │   │   ├── components/
@@ -93,15 +97,15 @@ src/
 │   │   │   ├── UpcomingConsultationBanner/
 │   │   │   ├── UpcomingSlotHeroCard/
 │   │   │   └── index.ts
-│   │   ├── hooks/                # Feature-specific custom hooks
 │   │   ├── screens/
 │   │   │   ├── DoctorListings.tsx
 │   │   │   ├── DoctorDetailsScreen.tsx
 │   │   │   ├── BookingSuccessScreen.tsx
 │   │   │   ├── UpcomingSlotScreen.tsx
 │   │   │   └── index.ts
-│   │   ├── mockData.ts           # Ayurvedic Doctor Dataset & Time Slots
-│   │   └── types.ts              # Doctor, Booking, TimeSlot Contracts
+│   │   ├── store.ts              # Store re-export for domain encapsulation
+│   │   ├── types.ts              # Doctor, Booking, TimeSlot Contracts
+│   │   └── index.ts
 │   │
 │   ├── shop/                     # Module 2: Ayurvedic E-Commerce Store
 │   │   ├── components/
@@ -117,6 +121,7 @@ src/
 │   │   │   ├── WishlistBadgeButton/
 │   │   │   ├── WishlistModal/
 │   │   │   └── index.ts
+│   │   ├── hooks/                # Feature-specific custom hooks (useDebounce)
 │   │   ├── screens/
 │   │   │   ├── ShopScreen.tsx
 │   │   │   ├── SearchScreen.tsx
@@ -124,35 +129,47 @@ src/
 │   │   │   ├── CartScreen.tsx
 │   │   │   ├── OrderPlacedScreen.tsx
 │   │   │   └── index.ts
-│   │   ├── mockData.ts           # Ayurvedic Formulations Dataset (Doshas, Herbs)
-│   │   └── types.ts              # Product, FilterState, CartItem Contracts
+│   │   ├── store.ts              # Store re-export for domain encapsulation
+│   │   ├── types.ts              # Product, FilterState, CartItem Contracts
+│   │   └── index.ts
 │   │
-│   └── health-records/           # Module 3: Patient Timeline & Records
-│       ├── components/
-│       │   ├── AttachmentModal/  # Modal Viewer for Clinical Docs / PDFs
-│       │   ├── MonthSectionHeader/# Month & Year Milestones with Count Badge
-│       │   ├── RecordAttachments/# Document & Image Thumbnail Previews
-│       │   ├── RecordHeader/     # Type Badge & Formatted Date
-│       │   ├── RecordTags/       # Interactive Clinical Tag Pills
-│       │   ├── TimelineCard/     # Decomposed Milestone Card
-│       │   ├── TimelineNode/     # Type-colored Bullet & Connector Line
-│       │   ├── TypeFilterBar/    # Horizontal Type Filter Chips
-│       │   └── index.ts
-│       ├── screens/
-│       │   ├── HealthRecordsScreen.tsx
-│       │   ├── HealthRecordsScreen.styles.ts
-│       │   └── index.ts
-│       ├── mockData.ts           # Clinical Records (Lab, Rx, Consult, Vax, Allergy)
-│       └── types.ts              # HealthRecord, RecordAttachment Contracts
+│   ├── health-records/           # Module 3: Patient Timeline & Records
+│   │   ├── components/
+│   │   │   ├── AttachmentModal/  # Modal Viewer for Clinical Docs / PDFs
+│   │   │   ├── MonthSectionHeader/# Month & Year Milestones with Count Badge
+│   │   │   ├── RecordAttachments/# Document & Image Thumbnail Previews
+│   │   │   ├── RecordHeader/     # Type Badge & Formatted Date
+│   │   │   ├── RecordTags/       # Interactive Clinical Tag Pills
+│   │   │   ├── TimelineCard/     # Decomposed Milestone Card
+│   │   │   ├── TimelineNode/     # Type-colored Bullet & Connector Line
+│   │   │   ├── TypeFilterBar/    # Horizontal Type Filter Chips
+│   │   │   └── index.ts
+│   │   ├── screens/
+│   │   │   ├── HealthRecordsScreen.tsx
+│   │   │   ├── HealthRecordsScreen.styles.ts
+│   │   │   └── index.ts
+│   │   ├── mockData.ts           # Clinical Records (Lab, Rx, Consult, Vax, Allergy)
+│   │   ├── types.ts              # HealthRecord, RecordAttachment Contracts
+│   │   └── index.ts
+│   │
+│   └── index.ts                  # Master Barrel Export for all features
 │
-├── services/                     # Device Services & Persistence
-│   └── storage.ts                # MMKV Instance & Search History Adapter
+├── hooks/                        # Global Custom React Hooks
+│   ├── useDebounce.ts            # High-performance search debouncing hook
+│   └── index.ts
+│
+├── services/                     # Device Services, Offline Queues & Persistence
+│   ├── apiCache.ts               # TTL-aware In-Memory & MMKV API Caching
+│   ├── offlineSync.ts            # Offline Booking/Order FIFO Queues & Sync Engine
+│   ├── storage.ts                # MMKV Native Storage Adapter & Search History
+│   └── index.ts                  # Clean barrel export (@services)
 │
 ├── store/                        # Global Application State (Zustand)
-│   ├── cartStore.ts              # Cart State, Quantity Stepper, Total Calculators
-│   ├── wishlistStore.ts          # Wishlist Sync & Toggle Handlers
-│   ├── consultationStore.ts      # Active Bookings & Slot Allocation
-│   └── index.ts
+│   ├── appStore.ts               # Bookings State, Active Appointments & Cancellation
+│   ├── cartStore.ts              # Cart Items, Quantity Stepper, Pricing Totals
+│   ├── wishlistStore.ts          # Wishlist Sync & Fast Set Operations
+│   ├── networkStore.ts           # Connectivity Observer, Pending Sync Counts & Simulator
+│   └── index.ts                  # Clean barrel export (@store)
 │
 ├── theme/                        # Design System Tokens & Scalers
 │   ├── colors.ts                 # Light & Dark Ayurvedic Palette Tokens
@@ -162,6 +179,10 @@ src/
 │   └── index.ts
 │
 └── utils/                        # General Utilities & Shared Helpers
+    ├── mockDoctors.ts            # Seed Ayurvedic Doctors dataset
+    ├── mockProducts.ts           # Seed Ayurvedic Formulations dataset
+    ├── slots.ts                  # Real-time slot generator & time utilities
+    ├── strings.ts                # Centralized string dictionary
     └── index.ts
 ```
 
@@ -171,7 +192,8 @@ src/
 
 ### 1. Doctor Consultation (`features/consultation`)
 - **Doctor Directory**: Filter by specialty (*Panchakarma, Kayachikitsa, Dravyaguna, Shalya Tantra*), experience, and user ratings.
-- **Dynamic Slot Allocation**: Real-time slot selection per doctor, immediate double-booking prevention, and conflict detection.
+- **Dynamic Slot Allocation**: Real-time slot generation for current time, expiration check, double-booking prevention, and cross-doctor conflict detection.
+- **Offline Booking Support**: Reserve slots even when disconnected; bookings are queued into `offline_bookings_queue` and synced upon reconnection.
 - **Upcoming Consultation Hub**: Top milestone banner and dedicated upcoming screen with countdown, doctor profile shortcut, cancellation modal, and pre-consultation guidelines.
 
 ### 2. Ayurvedic E-Commerce Shop (`features/shop`)
@@ -179,6 +201,7 @@ src/
 - **Multi-Faceted Filtering & Sorting**: Combinatorial filtering by **Category** (*Hair, Skin, Digestion, Immunity*), **Dosha Suitability** (*Vata, Pitta, Kapha, Tridosha*), and **In-Stock** availability; sort by *Price (Low/High)* and *Ratings*.
 - **Search History**: Instant search history caching powered by MMKV storage.
 - **Cart & Wishlist Engine**: Bi-directional quantity synchronization between catalog cards, details screen, and cart drawer.
+- **Offline Orders**: Check out seamlessly offline; orders are safely persisted and dispatched when internet returns.
 - **Celebration Checkout**: Spring-animated order placement confirmation with detailed item breakdown.
 
 ### 3. Patient Health Records Timeline (`features/health-records`)
@@ -194,6 +217,67 @@ src/
 
 ---
 
+## 💾 Offline-First Strategy & Synchronization Engine
+
+Amrutam is engineered from the ground up with an **Offline-First** core architecture, ensuring that every healthcare and shopping experience continues smoothly without requiring continuous internet connectivity.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           Offline Operations                            │
+│  ┌───────────────────────┐ ┌───────────────────┐ ┌───────────────────┐  │
+│  │   Cached API Layer    │ │   Offline Cart    │ │  Offline Bookings │  │
+│  │   Doctors & Products  │ │   & Order Queue   │ │  & Slot Locking   │  │
+│  └───────────┬───────────┘ └─────────┬─────────┘ └─────────┬─────────┘  │
+└──────────────┼───────────────────────┼─────────────────────┼────────────┘
+               │                       │                     │
+┌──────────────▼───────────────────────▼─────────────────────▼────────────┐
+│                    Persistent MMKV Storage & Queues                     │
+│   • api_cache_doctors / products / health_records (with TTL)            │
+│   • offline_bookings_queue (FIFO local queue)                           │
+│   • offline_orders_queue (FIFO local queue)                             │
+│   • search_history / cart_items                                         │
+└──────────────────────────────────────┬──────────────────────────────────┘
+                                       │
+┌──────────────────────────────────────▼──────────────────────────────────┐
+│                   Automatic Background Sync Engine                      │
+│   When Network Reconnects (offline ➔ online):                            │
+│   1. Dispatches queued offline bookings & orders to Amrutam Cloud       │
+│   2. Updates booking records to 'confirmed' (isOfflineQueued: false)    │
+│   3. Clears local MMKV sync queues                                      │
+│   4. Triggers interactive 'All Bookings & Orders Synced! 🌿' Banner      │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 1. High-Performance Native Storage (`src/services/storage.ts`)
+- Utilizes **Tencent MMKV** (via `react-native-mmkv`), a high-performance key-value storage engine backed by memory-mapped files (`mmap`).
+- **Synchronous read/writes** execute at C++ native speed without bridging serialization overhead, providing instantaneous state hydration on app launch.
+
+### 2. Time-To-Live (TTL) API Cache (`src/services/apiCache.ts`)
+- Generic `fetchWithCache<T>(key, fetcher, ttlMs)` manages local caching of doctors, product catalogs, and clinical records.
+- If the device is online and cache expired, fresh data is fetched and stored with metadata timestamps.
+- If offline, cached records are returned immediately with zero network errors. If cache is empty, it falls back seamlessly to deterministic seed datasets.
+
+### 3. Offline Consultation Bookings Queue (`src/services/offlineSync.ts`)
+- Users can schedule doctor appointments without internet.
+- Slots are optimistically reserved locally to prevent double booking or slot collision.
+- The appointment is tagged `isOfflineQueued: true`, added to `offline_bookings_queue` in MMKV, and the user receives a **"Queued for Auto-Sync 🌿"** celebration confirmation.
+
+### 4. Offline E-Commerce Cart & Checkout Queue (`src/services/offlineSync.ts`)
+- Cart state (items, quantities, and price recalculations) is persisted continuously in MMKV.
+- When an order is placed offline, it is serialized into `offline_orders_queue` in MMKV and the cart is safely cleared.
+- The user is transitioned to the **Order Placed** celebration screen with an offline queued badge indicator.
+
+### 5. Automatic Background Synchronization (`src/store/networkStore.ts`)
+- Listens to real-time network connectivity changes via `@react-native-community/netinfo`.
+- As soon as connectivity switches from `offline` to `online`, the engine automatically invokes `syncAllPendingData()`:
+  1. Iterates through all queued bookings and calls remote booking endpoints.
+  2. Dispatches all queued shopping orders to the backend.
+  3. Updates booking status from `isOfflineQueued: true` to `confirmed` in `appStore`.
+  4. Clears local MMKV queues and displays an interactive sync toast notification.
+- Includes an **in-app network simulation toggle** allowing instant testing and demonstration of offline flows on simulators.
+
+---
+
 ## 🎨 Architectural Decisions & Design System
 
 ### 1. Zero Hardcoding Policy
@@ -202,7 +286,7 @@ src/
 - **No Magic Numbers**: All dimensions and paddings leverage `spacing.*`, `radius.*`, and `react-native-size-matters` responsive utilities (`ms`, `vs`, `s`).
 
 ### 2. Component Decomposition
-Complex cards (such as `TimelineCard` and `UpcomingSlotHeroCard`) are broken down into single-responsibility sub-components. For example, `TimelineCard` orchestrates:
+Complex cards (such as `TimelineCard` and `UpcomingSlotHeroCard`) are broken down into single-responsibility sub-components:
 - `TimelineNode`: Handles line geometry and icon rendering.
 - `RecordHeader`: Renders category badge and formatted timestamp.
 - `RecordTags`: Manages chip wrapping and selection callbacks.
@@ -226,9 +310,10 @@ We selected **Zustand** as the primary state management engine for the following
 | **Native Storage Sync** | **Seamless** with MMKV | Requires Redux Persist | Custom useEffect logic |
 
 ### Store Implementation
-1. **`cartStore.ts`**: Manages cart items, quantity increments/decrements, removal, and calculated totals (`itemsSubtotal`, `totalAmount`).
-2. **`wishlistStore.ts`**: Manages wishlist set operations with fast $O(1)$ lookups.
-3. **`consultationStore.ts`**: Maintains booked slots, active consultations, and cancellation lifecycles.
+1. **`appStore.ts`**: Maintains booked consultation slots, active appointments, and cancellation lifecycles.
+2. **`cartStore.ts`**: Manages cart items, quantity increments/decrements, removal, and calculated totals (`itemsSubtotal`, `totalAmount`).
+3. **`wishlistStore.ts`**: Manages wishlist set operations with fast $O(1)$ lookups.
+4. **`networkStore.ts`**: Tracks online/offline status, pending sync queue counts, and coordinates sync triggers.
 
 ---
 
@@ -250,69 +335,19 @@ We selected **Zustand** as the primary state management engine for the following
 
 ---
 
-## 💾 Offline-First Strategy & Synchronization Engine
-
-Amrutam is engineered with an **Offline-First** core architecture, ensuring that every user experience continues smoothly without requiring continuous internet connectivity.
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           Offline Operations                            │
-│  ┌───────────────────────┐ ┌───────────────────┐ ┌───────────────────┐  │
-│  │   Cached API Layer    │ │   Offline Cart    │ │  Offline Bookings │  │
-│  │   Doctors & Products  │ │   & Order Queue   │ │  & Slot Locking   │  │
-│  └───────────┬───────────┘ └─────────┬─────────┘ └─────────┬─────────┘  │
-└──────────────┼───────────────────────┼─────────────────────┼────────────┘
-               │                       │                     │
-┌──────────────▼───────────────────────▼─────────────────────▼────────────┐
-│                    Persistent MMKV Storage & Queues                     │
-│   • api_cache_doctors / products / health_records (with TTL)            │
-│   • offline_bookings_queue (FIFO local queue)                           │
-│   • offline_orders_queue (FIFO local queue)                             │
-└──────────────────────────────────────┬──────────────────────────────────┘
-                                       │
-┌──────────────────────────────────────▼──────────────────────────────────┐
-│                   Automatic Background Sync Engine                      │
-│   When Network Reconnects (offline ➔ online):                            │
-│   1. Dispatches queued offline bookings & orders to Amrutam Cloud       │
-│   2. Updates booking records to 'confirmed' (isOfflineQueued: false)    │
-│   3. Clears local MMKV sync queues                                      │
-│   4. Triggers interactive 'All Bookings & Orders Synced! 🌿' Banner      │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
-1. **Cached API Responses (`src/services/apiCache.ts`)**:
-   - Generic `fetchWithCache<T>` wrapper stores serialized data envelopes with timestamps and TTL.
-   - When offline, API queries return cached responses with zero network errors. If cache is empty, it falls back gracefully to default seed datasets.
-
-2. **Offline Cart & Order Queueing (`src/services/offlineSync.ts`)**:
-   - Cart modifications (adding, updating quantities, clearing) are 100% persistent in MMKV.
-   - Orders placed offline are added to `offline_orders_queue`, and the user is shown an **"Order Queued Successfully! 🌿"** confirmation screen.
-
-3. **Offline Consultation Bookings (Queued)**:
-   - Doctor slots can be booked offline. Slots are optimistically reserved in local state to prevent double booking.
-   - Bookings are tagged `isOfflineQueued: true` and saved to `offline_bookings_queue`.
-   - The user receives an immediate **"Queued for Auto-Sync 🌿"** celebration screen.
-
-4. **Automatic Sync Engine Once Internet Returns (`src/store/networkStore.ts`)**:
-   - Network connectivity transitions automatically trigger `syncAllPendingData()`.
-   - Pending bookings and orders are dispatched and marked synced, local queues are cleared, and a celebratory sync banner is displayed.
-   - Includes an interactive offline/online simulation toggle for testing and demonstration on simulators.
-
----
-
 ## ⚖️ Trade-offs Made
 
-1. **Zustand vs SQLite Relational DB**:
+1. **Zustand + MMKV vs SQLite Relational DB**:
    - *Decision*: Used Zustand with MMKV rather than SQLite / WatermelonDB.
    - *Rationale*: For a mobile client of this scale, an in-memory reactive store backed by fast key-value persistence provides sub-millisecond response times with significantly less schema migration overhead.
    - *Trade-off*: Complex relational joins on tens of thousands of records would require full database integration in future phases.
 
 2. **Client-side Mock Data vs API Mock Server**:
-   - *Decision*: Embedded strongly-typed mock datasets in `mockData.ts`.
+   - *Decision*: Embedded strongly-typed mock datasets in `mockDoctors.ts`, `mockProducts.ts`, and `mockData.ts`.
    - *Rationale*: Ensures complete offline determinism, eliminates network flake during development/testing, and provides consistent data contracts matching real-world Ayurvedic products and doctor profiles.
 
 3. **Modal Sheets vs Native Navigation Screens**:
-   - *Decision*: Filter controls and attachment previews are presented via lightweight modal sheets instead of pushing new navigation routes.
+   - *Decision*: Filter controls, wishlist view, and attachment previews are presented via lightweight modal sheets instead of pushing new navigation routes.
    - *Rationale*: Preserves user scroll position, search queries, and context without requiring round-trip route param serialization.
 
 ---
@@ -366,7 +401,7 @@ npm run ios
 ### Code Quality & Automated Test Suite
 
 ```bash
-# 1. Run Jest Unit Test Suite (17 tests passing)
+# 1. Run Jest Unit Test Suite (6 test suites, 31 tests passing)
 npm test
 
 # 2. Run TypeScript compilation check (0 errors)
@@ -375,6 +410,14 @@ npx tsc --noEmit
 # 3. Run ESLint code quality check (0 errors, 0 warnings)
 npm run lint
 ```
+
+**Unit Test Breakdown:**
+- `src/services/__tests__/offlineSync.test.ts`: Offline consultation & order queue FIFO operations, queue clearing, and sync orchestration.
+- `src/services/__tests__/apiCache.test.ts`: Generic API caching, TTL expiration handling, and offline fallback mechanisms.
+- `src/store/__tests__/cartStore.test.ts`: Cart item modifications, quantity stepper math, and price subtotal calculators.
+- `src/store/__tests__/wishlistStore.test.ts`: Wishlist toggling, state idempotency, and item removal.
+- `src/store/__tests__/consultationStore.test.ts`: Booking slot creation, duplicate detection, and cancellation lifecycles.
+- `src/hooks/__tests__/useDebounce.test.tsx`: Search query timer debouncing and rapid input stabilization.
 
 ---
 

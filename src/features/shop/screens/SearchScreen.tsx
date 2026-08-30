@@ -24,9 +24,8 @@ import {
   addSearchHistoryItem,
   removeSearchHistoryItem,
   clearSearchHistory,
-} from '../../../services/storage';
-import { useCartStore } from '../../../store/cartStore';
-import { useWishlistStore } from '../../../store/wishlistStore';
+} from '@services';
+import { useCartStore, useWishlistStore } from '@store';
 import { createStyles } from './SearchScreen.styles';
 
 type SearchScreenRouteProp = RouteProp<AppStackParamList, 'Search'>;

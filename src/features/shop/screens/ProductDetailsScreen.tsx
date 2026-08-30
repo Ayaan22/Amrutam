@@ -7,8 +7,7 @@ import { Surface, Text, Card, Badge, Button, Image } from '@core-components';
 import { useTheme } from '@theme';
 import { STRINGS } from '@utils';
 import { AppStackParamList } from '@app/navigation/types';
-import { useCartStore } from '../../../store/cartStore';
-import { useWishlistStore } from '../../../store/wishlistStore';
+import { useCartStore, useWishlistStore } from '@store';
 import { CartBadgeButton } from '../components';
 import { createStyles } from './ProductDetailsScreen.styles';
 

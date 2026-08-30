@@ -1,1 +1,1 @@
-export * from '../../store/cartStore';
+export * from '@store';

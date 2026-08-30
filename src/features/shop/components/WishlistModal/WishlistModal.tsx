@@ -11,8 +11,7 @@ import { Text, Button, Image, EmptyState } from '@core-components';
 import { useTheme } from '@theme';
 import { STRINGS } from '@utils';
 import { Product } from '../../types';
-import { useWishlistStore } from '../../../../store/wishlistStore';
-import { useCartStore } from '../../../../store/cartStore';
+import { useWishlistStore, useCartStore } from '@store';
 import { createStyles } from './WishlistModal.styles';
 import { WishlistModalProps } from './WishlistModal.types';
 

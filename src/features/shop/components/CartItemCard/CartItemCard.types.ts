@@ -1,4 +1,4 @@
-import { CartItem } from '../../../../store/cartStore';
+import { CartItem } from '@store';
 
 export interface CartItemCardProps {
   item: CartItem;

@@ -12,7 +12,7 @@ import {
   TimeSlot,
 } from '@utils';
 import { useAppStore, useNetworkStore } from '@store';
-import { enqueueOfflineBooking } from '../../../services/offlineSync';
+import { enqueueOfflineBooking } from '@services';
 import { Booking } from '@features/consultation/types';
 import { DoctorSlotsGrid } from '@features/consultation/components';
 import { AppStackParamList } from '@app/navigation/types';
